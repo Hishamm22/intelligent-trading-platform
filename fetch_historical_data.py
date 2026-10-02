@@ -6,9 +6,9 @@ from datetime import datetime, timedelta
 # Public market data endpoint - no API key needed
 BASE_URL = "https://api.binance.com/api/v3/klines"
 
-SYMBOLS = ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+SYMBOLS = ["BTCUSDT", "XRPUSDT", "SOLUSDT"]
 INTERVALS = ["1m", "3m", "5m"]
-DAYS_BACK = 30
+DAYS_BACK = 90
 
 def fetch_klines(symbol, interval, start_time, end_time, limit=1000):
     all_candles = []

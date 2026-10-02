@@ -14,7 +14,7 @@ DB_CONFIG = {
     "password": os.getenv("POSTGRES_PASSWORD")
 }
 
-SYMBOLS = ["btcusdt", "ethusdt", "bnbusdt"]
+SYMBOLS = ["btcusdt", "xrpusdt", "solusdt"]
 INTERVALS = ["1m", "3m", "5m"]
 
 conn = psycopg2.connect(**DB_CONFIG)
