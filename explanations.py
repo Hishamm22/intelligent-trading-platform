@@ -6,6 +6,8 @@ from model_utils import FEATURE_COLUMNS, TARGET_COLUMN, load_split
 
 def describe(name, value, typical):
     if name == "return":
+        if abs(value) < 0.00005:
+            return "the last candle was essentially unchanged"
         return f"the last candle moved {value:+.2%}"
     if name == "rsi":
         if value < 30:
@@ -43,8 +45,8 @@ def describe(name, value, typical):
 
 
 def explain_prediction(row, shap_row, prob, typical, top_n=3):
-    direction = "UP" if prob >= 0.5 else "NOT UP"
-    lines = [f"Prediction: next candle {direction} (P(up) = {prob:.1%})."]
+    direction = "UP (next close higher)" if prob >= 0.5 else "NOT UP (next close lower or unchanged)"
+    lines = [f"Prediction: {direction}, P(up) = {prob:.1%}."]
     lines.append("Main reasons:")
     order = np.argsort(-np.abs(shap_row))[:top_n]
     for j in order:
