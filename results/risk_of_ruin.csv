@@ -1,0 +1,16 @@
+scenario,risk_per_trade,median_final,p_below_start,p_ruin,median_max_drawdown
+"Fair coin, no fees",0.5%,0.998,0.519,0.0,0.073
+"Fair coin, no fees",1.0%,0.99,0.519,0.0,0.143
+"Fair coin, no fees",2.0%,0.961,0.574,0.021,0.273
+"Fair coin, no fees",5.0%,0.779,0.627,0.435,0.581
+"Fair coin, no fees",10.0%,0.366,0.782,0.802,0.867
+"No edge, with fees",0.5%,0.71,1.0,0.0,0.293
+"No edge, with fees",1.0%,0.503,1.0,0.507,0.502
+"No edge, with fees",2.0%,0.249,1.0,1.0,0.756
+"No edge, with fees",5.0%,0.027,1.0,1.0,0.974
+"No edge, with fees",10.0%,0.0,1.0,1.0,1.0
+Break-even for fees,0.5%,1.005,0.462,0.0,0.058
+Break-even for fees,1.0%,1.007,0.462,0.0,0.113
+Break-even for fees,2.0%,1.0,0.522,0.003,0.218
+Break-even for fees,5.0%,0.906,0.584,0.262,0.481
+Break-even for fees,10.0%,0.586,0.694,0.677,0.773
