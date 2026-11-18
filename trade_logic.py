@@ -39,7 +39,7 @@ GLOSSARY = {
     "take-profit": "Take-profit: a price where you exit to lock in a gain.",
     "position size": "Position size: how much you buy, chosen so that a stop-out loses only a set % of your account.",
     "fees": "Fees: charged when you buy AND when you sell (0.10% each way here), so a round trip costs 0.20%.",
-    "volatility": "Volatility: how much the price typically moves. Our tests show volatility is more predictable than direction.",
+    "volatility": "Volatility: how much the price typically moves. In our tests, whether the NEXT move is big or small was much easier to predict (AUC 0.64-0.70) than whether it is up or down (about 0.52).",
     "auc": "AUC: how well a model ranks 'up' above 'down'. 0.5 = coin flip, 1.0 = perfect. Ours is about 0.52.",
 }
 
@@ -52,6 +52,8 @@ RESULT_FILES = {
     "lstm": "lstm_comparison.csv",
     "weighting": "weighting_val.csv",
     "risk_of_ruin": "risk_of_ruin.csv",
+    "forward_auc": "forward_test_auc.csv",
+    "forward_backtest": "forward_test_backtest.csv",
 }
 
 

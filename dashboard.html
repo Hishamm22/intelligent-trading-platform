@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intelligent Trading Platform - Live Dashboard</title>
+<style>
+  :root{--teal:#0C4A4A;--teal2:#14706f;--ink:#1b2528;--mute:#5d6b70;--line:#dde4e6;--bg:#f4f7f8;
+        --red:#c0392b;--redbg:#fdecea;--amber:#b7791f;--amberbg:#fff4dc;--green:#1e8449;--greenbg:#e6f4ec;--up:#1e8449;--down:#c0392b;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45}
+  header{background:var(--teal);color:#fff;padding:14px 24px;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:center}
+  header h1{font-size:18px;margin:0;font-weight:700}
+  header .sub{font-size:12px;opacity:.8}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-left:auto}
+  label.c{font-size:11px;text-transform:uppercase;letter-spacing:.04em;opacity:.85;display:flex;flex-direction:column;gap:3px}
+  select,input,button{font:inherit}
+  select{padding:6px 8px;border-radius:6px;border:1px solid #ffffff55;background:#fff;color:var(--ink)}
+  .badge{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#ffffff22;white-space:nowrap}
+  .badge.ok{background:#d7f0e1;color:#14532d}.badge.stale{background:#ffe3b0;color:#7a4b00}.badge.bad{background:#fbd0cb;color:#7f1d1d}
+  main{max-width:1280px;margin:0 auto;padding:20px 24px 40px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px}
+  @media(max-width:980px){main{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .card h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--teal)}
+  .full{grid-column:1/-1}
+  .verdict{border-width:2px;align-self:start}
+  .verdict.red{border-color:var(--red);background:var(--redbg)}.verdict.amber{border-color:var(--amber);background:var(--amberbg)}.verdict.green{border-color:var(--green);background:var(--greenbg)}
+  .vtop{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .light{width:54px;height:54px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px;text-align:center}
+  .red .light{background:var(--red)}.amber .light{background:var(--amber)}.green .light{background:var(--green)}
+  .headline{font-size:19px;font-weight:700;margin:0}
+  .meta{color:var(--mute);font-size:12px;margin-top:2px}
+  .kpis{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+  .kpi{background:#ffffffaa;border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-width:110px}
+  .kpi b{display:block;font-size:20px}.kpi span{font-size:11px;color:var(--mute);text-transform:uppercase}
+  ul.reasons{margin:8px 0 0;padding:0;list-style:none}
+  ul.reasons li{padding:6px 0 6px 22px;position:relative;border-top:1px solid #0000000f}
+  ul.reasons li:before{content:"";position:absolute;left:4px;top:11px;width:10px;height:10px;border-radius:50%;background:var(--mute)}
+  ul.reasons li.l-red:before{background:var(--red)}ul.reasons li.l-amber:before,ul.reasons li.l-yellow:before,ul.reasons li.l-warn:before,ul.reasons li.l-warning:before{background:var(--amber)}ul.reasons li.l-green:before,ul.reasons li.l-good:before,ul.reasons li.l-ok:before{background:var(--green)}
+  .expl{margin-top:10px;font-size:13px;white-space:pre-line}
+  .disc{margin-top:10px;font-size:11px;color:var(--mute);font-style:italic}
+  svg text{font-family:Arial,Helvetica,sans-serif}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin-top:6px}
+  .legend i{display:inline-block;width:14px;height:0;border-top:2px solid;vertical-align:middle;margin-right:4px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .row label{font-size:12px;color:var(--mute);display:flex;flex-direction:column;gap:3px;flex:1;min-width:110px}
+  .row input{padding:7px 8px;border:1px solid var(--line);border-radius:6px}
+  .rtable{width:100%;border-collapse:collapse;font-size:13px}
+  .rtable td{padding:6px 0;border-top:1px solid var(--line)}.rtable td:last-child{text-align:right;font-weight:700}
+  .warn{background:var(--amberbg);border-left:4px solid var(--amber);padding:6px 10px;margin:6px 0;font-size:12px;border-radius:4px}
+  .drv{display:grid;grid-template-columns:150px 1fr 56px;gap:8px;align-items:center;font-size:12px;margin:5px 0}
+  .bar{height:12px;background:#eef2f3;border-radius:3px;position:relative}
+  .bar i{position:absolute;top:0;bottom:0;border-radius:3px}
+  .bar:after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;border-left:1px solid #8a9a9e}
+  .tbl{width:100%;border-collapse:collapse;font-size:12px;display:block;overflow-x:auto}
+  .tbl th{background:#eef4f4;text-align:left;padding:6px 8px;white-space:nowrap}.tbl td{padding:5px 8px;border-top:1px solid var(--line);white-space:nowrap}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .tab{border:1px solid var(--line);background:#fff;padding:5px 10px;border-radius:999px;cursor:pointer;font-size:12px}
+  .tab.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .note{font-size:12px;color:var(--mute);margin-top:8px}
+  dl{margin:0;columns:2 340px;column-gap:32px}dt{break-after:avoid;font-weight:700;margin-top:8px;color:var(--teal)}dd{break-before:avoid;margin:2px 0 0;color:#33464b}
+  .err{background:var(--redbg);border:1px solid var(--red);color:#7f1d1d;padding:12px 16px;border-radius:8px;grid-column:1/-1}
+  .tip{border-bottom:1px dotted var(--mute);cursor:help}
+  #tt{position:fixed;pointer-events:none;background:#101c1e;color:#fff;font-size:12px;padding:6px 9px;border-radius:6px;display:none;z-index:9;max-width:260px;line-height:1.4}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;font-size:12px;color:var(--mute)}
+  .toolbar select,.toolbar button{padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);cursor:pointer}
+  .toolbar button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  #replayctl{display:none;gap:6px;align-items:center;padding-left:8px;border-left:1px solid var(--line)}
+  .sim{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
+  @media(max-width:860px){.sim{grid-template-columns:1fr}}
+  .btn{border:0;border-radius:8px;padding:10px 14px;font-weight:700;font-size:14px;cursor:pointer;color:#fff}
+  .btn.buy{background:var(--green)}.btn.sell{background:var(--red)}.btn.ghost{background:#fff;color:var(--teal);border:1px solid var(--teal)}.btn.small{padding:6px 10px;font-size:12px}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .acct{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .acct .kpi{min-width:95px}
+  .pos{border:2px solid var(--teal2);border-radius:8px;padding:10px 12px;margin-bottom:10px;background:#f1f8f8}
+  .pnl.up{color:var(--green)}.pnl.dn{color:var(--red)}
+  .msg{padding:8px 10px;border-radius:6px;margin:8px 0;font-size:13px;background:#eef4f4}.msg.bad{background:var(--redbg);color:#7f1d1d}.msg.good{background:var(--greenbg);color:#14532d}
+  .hint{font-size:11px;color:var(--mute);margin-top:2px}
+  footer{text-align:center;color:var(--mute);font-size:11px;padding:0 24px 24px}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Intelligent Trading Platform</h1><div class="sub">Explainable crypto trade checker - live data from PostgreSQL</div></div>
+  <div class="controls">
+    <label class="c">Coin<select id="symbol"><option>BTCUSDT</option><option>XRPUSDT</option><option>SOLUSDT</option></select></label>
+    <label class="c">Timeframe<select id="interval"><option>1m</option><option>3m</option><option selected>5m</option></select></label>
+    <label class="c">Data<select id="source"><option value="db">Live (database)</option><option value="replay">Replay (unseen test period)</option></select></label>
+    <label class="c">Refresh<select id="refresh"><option value="30">every 30 s</option><option value="0">paused</option></select></label>
+    <span id="fresh" class="badge">checking...</span>
+  </div>
+</header>
+
+<main id="main">
+  <section class="card verdict" id="verdict"><h2>Trade check</h2><div>Loading...</div></section>
+  <section class="card" id="riskcard">
+    <h2>Position &amp; risk calculator</h2>
+    <div class="row">
+      <label>Account balance ($)<input id="balance" type="number" min="1" step="any" value="1000"></label>
+      <label>Risk per trade (%)<input id="riskpct" type="number" min="0.1" max="100" step="0.1" value="1"></label>
+    </div>
+    <div id="risk">Loading...</div>
+  </section>
+
+  <section class="card" id="chartcard">
+    <h2>Price chart, trade plan and model confidence</h2>
+    <div class="toolbar">
+      <span>Style</span><button id="b-candle" class="on">Candles</button><button id="b-line">Line</button>
+      <span>Show</span><select id="win"><option value="50">50 candles</option><option value="110" selected>110 candles</option><option value="200">200 candles</option></select>
+      <span id="replayctl"><span id="ridx"></span><button id="r-next" title="Reveal the next candle">Next &#9654;</button><button id="r-10">+10</button><button id="r-auto">Auto-play</button></span>
+    </div>
+    <div id="chart"></div>
+    <div class="legend">
+      <span><i style="border-color:#1b2528"></i>Entry</span>
+      <span><i style="border-color:#c0392b"></i>Stop-loss (exit if wrong)</span>
+      <span><i style="border-color:#1e8449"></i>Take-profit (exit if right)</span>
+      <span>Lower strip: model's chance of "up" (50% = coin flip)</span>
+    </div>
+  </section>
+  <section class="card" id="drivers"><h2>Why? What pushed the model</h2><div>Loading...</div></section>
+
+  <section class="card full" id="simcard">
+    <h2>Paper-trading simulator <span style="text-transform:none;letter-spacing:0;color:var(--mute);font-weight:400">- practice with pretend money, no real orders are ever sent</span></h2>
+    <div class="sim">
+      <div>
+        <div class="acct" id="acct"></div>
+        <div class="row">
+          <label>Amount to invest ($)<input id="amt" type="number" min="1" step="any"></label>
+          <label>Stop-loss (% below entry)<input id="slp" type="number" min="0.01" step="0.01"></label>
+          <label>Take-profit (% above entry)<input id="tpp" type="number" min="0.01" step="0.01"></label>
+        </div>
+        <div class="hint" id="ticketinfo"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn buy" id="btn-buy">BUY at market</button>
+          <button class="btn sell" id="btn-sell">SELL (close position)</button>
+          <button class="btn ghost" id="btn-plan">Use suggested plan</button>
+        </div>
+        <div id="simmsg"></div>
+        <div class="note">Long-only spot trading, like the model itself. Each buy and each sell pays the 0.10% fee. A stop-loss or take-profit closes the trade automatically; if one candle touches both, the stop is assumed to hit first (the cautious choice).</div>
+      </div>
+      <div>
+        <div id="posbox"></div>
+        <h2 style="margin-top:6px">Trade history</h2>
+        <div id="hist"></div>
+        <div style="margin-top:8px"><button class="btn ghost small" id="btn-reset">Reset account</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card full">
+    <h2>Reality check - how this model really performed on data it had never seen</h2>
+    <div class="tabs" id="rtabs"></div>
+    <div id="rbody">Loading...</div>
+    <div class="note">These come straight from the project's saved experiment files. Honest summary: the model has a small but real statistical edge (AUC about 0.52, and it held up on 47 further days of data it never saw) but this does <b>not</b> survive trading fees. This is a research tool, not a money machine.</div>
+  </section>
+
+  <section class="card full"><h2>Plain-English glossary</h2><dl id="gloss"></dl></section>
+</main>
+<footer>Educational research project (BEng Computer Science, ARU). Not financial advice. Public market data only.</footer>
+<div id="tt"></div>
+
+<script>
+const API = location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
+const $ = id => document.getElementById(id);
+let GLOSS = {}, timer = null, lastSeries = null, lastRisk = null, busy = false;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const usd = v => v == null ? "-" : "$" + Number(v).toLocaleString(undefined, {maximumFractionDigits: v < 10 ? 4 : 2, minimumFractionDigits: v < 10 ? 4 : 2});
+const money = v => v == null ? "-" : (v < 0 ? "-" : "") + "$" + Math.abs(Number(v)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const pct = (v, d=1) => v == null ? "-" : (v * 100).toFixed(d) + "%";
+
+async function get(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) {
+    let d = ""; try { d = (await r.json()).detail } catch (e) {}
+    throw new Error(`${path.split("?")[0]} -> ${r.status} ${d}`);
+  }
+  return r.json();
+}
+let ridx = 300, cur = {};
+const q = kind => { let t = `symbol=${$("symbol").value}&interval=${$("interval").value}&source=${$("source").value}`;
+  if ($("source").value === "replay") t += kind === "series" ? `&end=${ridx}` : `&index=${ridx}`; return t; };
+
+function tip(term, text) { return `<span class="tip" data-tip="${esc(text)}">${esc(term)}</span>`; }
+
+/* ---------- freshness ---------- */
+async function loadStatus() {
+  const b = $("fresh");
+  try {
+    const s = await get("/status");
+    const rows = Array.isArray(s) ? s : (s.series || s.rows || Object.values(s).filter(x => typeof x === "object"));
+    const mine = rows.find(r => r && r.symbol === $("symbol").value && r.interval === $("interval").value);
+    let h = null;
+    if (mine) { const t = Date.parse((mine.last || "").replace(" ", "T")); h = isNaN(t) ? mine.hours_since_last_candle : (Date.now() - t) / 3600000; }
+    if ($("source").value === "replay") { b.className = "badge"; b.textContent = "Replay - candle #" + ridx; return; }
+    if (h == null) { b.className = "badge"; b.textContent = "Data status unknown"; return; }
+    const mins = h * 60, im = {"1m": 1, "3m": 3, "5m": 5}[$("interval").value] || 5;
+    const okLimit = 2 * im + 2;                       // a candle opens every `im` min and closes `im` later
+    b.className = "badge " + (mins < okLimit ? "ok" : mins < 60 ? "stale" : "bad");
+    const hhmm = isNaN(Date.parse((mine.last || "").replace(" ", "T"))) ? "" : new Date((mine.last || "").replace(" ", "T")).toISOString().slice(11, 16);
+    b.textContent = mins < okLimit ? `LIVE - latest candle ${hhmm} UTC` : `Data is ${mins < 120 ? mins.toFixed(0) + " min" : h.toFixed(1) + " h"} old`;
+  } catch (e) { b.className = "badge bad"; b.textContent = "API offline"; }
+}
+
+/* ---------- verdict ---------- */
+function renderVerdict(s) {
+  const v = ["red","amber","green"].includes(s.verdict) ? s.verdict : "amber";
+  const word = {red:"AVOID", amber:"CAUTION", green:"FAVOURABLE"}[v];
+  const reasons = (s.reasons || []).map(r => `<li class="l-${esc(String(r.level).toLowerCase())}">${esc(r.text)}</li>`).join("");
+  const t = s.candle_time ? new Date(typeof s.candle_time === "number" ? s.candle_time * 1000 : String(s.candle_time).replace(" ", "T")) : null;
+  const when = t && !isNaN(t) ? t.toUTCString().replace("GMT", "UTC") : esc(s.candle_time || "");
+  const old = s.hours_old != null ? ` (${s.hours_old < 1 ? Math.round(s.hours_old * 60) + " min" : s.hours_old.toFixed(1) + " h"} ago)` : "";
+  $("verdict").className = "card verdict " + v;
+  $("verdict").innerHTML = `
+    <h2>Trade check - ${esc(s.symbol)} ${esc(s.interval)}</h2>
+    <div class="vtop"><div class="light">${word}</div>
+      <div><p class="headline">${esc(s.headline)}</p><div class="meta">Candle: ${when}${old} - source: ${esc(s.source)}</div></div></div>
+    <div class="kpis">
+      <div class="kpi"><span>Price</span><b>${usd(s.price)}</b></div>
+      <div class="kpi"><span>${tip("Chance of up", "The model's estimated probability that price is higher " + 15 + " candles from now. 50% is a coin flip.")}</span><b>${pct(s.probability_up)}</b></div>
+      <div class="kpi"><span>Leaning</span><b>${esc(s.lean ?? "-")}</b></div>
+      <div class="kpi"><span>Confidence</span><b>${esc(typeof s.confidence === "number" ? pct(s.confidence, 0) : (s.confidence ?? "-"))}</b></div>
+      ${s.fee_ratio != null ? `<div class="kpi"><span>${tip("Fee ratio","Expected move compared with round-trip fees. Below about 1 means fees likely eat the whole move.")}</span><b>${Number(s.fee_ratio).toFixed(2)}</b></div>` : ""}
+    </div>
+    <ul class="reasons">${reasons}</ul>
+    ${s.explanation ? `<div class="expl">${esc(s.explanation)}</div>` : ""}
+    <div class="disc">${esc(s.disclaimer || "")}</div>`;
+}
+
+/* ---------- drivers ---------- */
+function renderDrivers(s) {
+  const d = s.drivers || [];
+  const m = Math.max(0.0001, ...d.map(x => Math.abs(x.shap)));
+  $("drivers").innerHTML = `<h2>Why? What pushed the model</h2>` +
+    `<div class="note" style="margin:-4px 0 8px">${tip("SHAP", GLOSS.shap || "")}: green pushes the model towards UP, red towards DOWN, for this one prediction.</div>` +
+    d.map(x => {
+      const w = Math.abs(x.shap) / m * 50, up = x.shap >= 0;
+      return `<div class="drv"><div title="value: ${esc(x.value)}">${esc(x.feature)}</div>
+        <div class="bar"><i style="${up ? "left:50%" : "right:50%"};width:${w}%;background:${up ? "var(--up)" : "var(--down)"}"></i></div>
+        <div style="text-align:right;color:${up ? "var(--up)" : "var(--down)"}">${x.shap > 0 ? "+" : ""}${Number(x.shap).toFixed(3)}</div></div>`;
+    }).join("") || "<div>No driver data.</div>";
+}
+
+/* ---------- risk ---------- */
+function renderRisk(r) {
+  const w = (r.warnings || []).map(x => `<div class="warn">${esc(x)}</div>`).join("");
+  $("risk").innerHTML = `<table class="rtable">
+    <tr><td>${tip("Entry", "Price you would buy at (the current price).")}</td><td>${usd(r.entry)}</td></tr>
+    <tr><td>${tip("Stop-loss", GLOSS["stop-loss"] || "")}</td><td style="color:var(--red)">${usd(r.stop)} (-${Number(r.stop_distance_pct).toFixed(2)}%)</td></tr>
+    <tr><td>${tip("Take-profit", GLOSS["take-profit"] || "")}</td><td style="color:var(--green)">${usd(r.target)} (+${Number(r.target_distance_pct).toFixed(2)}%)</td></tr>
+    <tr><td>${tip("Position size", GLOSS["position size"] || "")}</td><td>${money(r.position_value)} (${Number(r.units).toPrecision(4)} units)</td></tr>
+    <tr><td>${tip("Fees", GLOSS.fees || "")} (round trip)</td><td>${money(r.round_trip_fees)}</td></tr>
+    <tr><td>Max loss if stopped out</td><td style="color:var(--red)">${money(r.max_loss)}</td></tr>
+    <tr><td>Gain if target hit</td><td style="color:var(--green)">${money(r.potential_gain)}</td></tr>
+    <tr><td>Reward-to-risk (after fees)</td><td>${Number(r.risk_reward_after_fees).toFixed(2)}</td></tr></table>
+    ${w}${r.note ? `<div class="note">${esc(r.note)}</div>` : ""}`;
+}
+
+/* ---------- chart (hand-drawn SVG) ---------- */
+let chartStyle = "candle", lastSr = null, lastLines = null;
+function drawChart() {
+  if (!lastSr) return; const sr = lastSr, lines = lastLines;
+  const real = !!sr.candles;
+  const all = real ? sr.candles : sr.price_index.map(v => ({time: null, open: v, high: v, low: v, close: v}));
+  const winN = +$("win").value, N = Math.min(winN, all.length), off = all.length - N;
+  const C = all.slice(off), P = sr.probability_up.slice(off);
+  const asLine = chartStyle === "line" || !real;
+  const W = 760, H = 330, L = 8, R = 62, T = 10, PH = 60, GAP = 22, B = 20;
+  const ph = H - T - PH - GAP - B;
+  let lo = Math.min(...C.map(c => c.low)), hi = Math.max(...C.map(c => c.high));
+  if (lines) { lo = Math.min(lo, lines.stop); hi = Math.max(hi, lines.target); }
+  const pad = (hi - lo) * 0.05 || 1; lo -= pad; hi += pad;
+  const x = i => L + (i + 0.5) * (W - L - R) / N, y = v => T + (hi - v) / (hi - lo) * ph;
+  const bw = Math.max(1.5, (W - L - R) / N * 0.62);
+  const fm = v => v.toLocaleString(undefined, {maximumFractionDigits: v < 10 ? 4 : 2});
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" id="svg" role="img" aria-label="Price chart">`;
+  for (let k = 0; k <= 4; k++) {
+    const v = lo + (hi - lo) * k / 4, yy = y(v);
+    s += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="#e6ecee"/><text x="${W - R + 5}" y="${yy + 4}" font-size="10" fill="#5d6b70">${fm(v)}</text>`;
+  }
+  if (asLine) {
+    s += `<polyline fill="none" stroke="#1b2528" stroke-width="1.6" points="${C.map((c, i) => `${x(i)},${y(c.close)}`).join(" ")}"/>`;
+  } else {
+    C.forEach((c, i) => {
+      const up = c.close >= c.open, col = up ? "#1e8449" : "#c0392b";
+      s += `<line x1="${x(i)}" x2="${x(i)}" y1="${y(c.high)}" y2="${y(c.low)}" stroke="${col}"/>
+            <rect x="${x(i) - bw / 2}" y="${y(Math.max(c.open, c.close))}" width="${bw}" height="${Math.max(1, Math.abs(y(c.open) - y(c.close)))}" fill="${col}"/>`;
+    });
+  }
+  if (lines) {
+    const zone = (a, b2, col) => `<rect x="${L}" y="${Math.min(y(a), y(b2))}" width="${W - L - R}" height="${Math.abs(y(a) - y(b2))}" fill="${col}" opacity=".08"/>`;
+    s += zone(lines.entry, lines.target, "#1e8449") + zone(lines.entry, lines.stop, "#c0392b");
+    const tag = lines.pos ? " (your trade)" : " (plan)";
+    [["Entry" + tag, lines.entry, "#1b2528"], ["Stop", lines.stop, "#c0392b"], ["Target", lines.target, "#1e8449"]].forEach(([n, v, col]) => {
+      s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="${col}" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <text x="${L + 4}" y="${y(v) - 3}" font-size="10" font-weight="700" fill="${col}" stroke="#fff" stroke-width="3" paint-order="stroke">${n}</text>`;
+    });
+  }
+  const y0 = T + ph + GAP, py = p => y0 + PH - Math.max(0, Math.min(1, p)) * PH;
+  s += `<rect x="${L}" y="${y0}" width="${W - L - R}" height="${PH}" fill="#f4f7f8"/>
+        <line x1="${L}" x2="${W - R}" y1="${py(.5)}" y2="${py(.5)}" stroke="#8a9a9e" stroke-dasharray="3 3"/>
+        <text x="${W - R + 5}" y="${py(.5) + 4}" font-size="10" fill="#5d6b70">50%</text>
+        <text x="${W - R + 5}" y="${y0 + 8}" font-size="10" fill="#5d6b70">100%</text><text x="${W - R + 5}" y="${y0 + PH}" font-size="10" fill="#5d6b70">0%</text>
+        <polyline fill="none" stroke="#14706f" stroke-width="1.6" points="${P.map((p, i) => `${x(i)},${py(p)}`).join(" ")}"/>`;
+  const lab = i => C[i].time ? new Date(C[i].time * 1000).toISOString().slice(5, 16).replace("T", " ") + " UTC" : "candle #" + (sr.start + off + i);
+  [0, Math.floor(N / 2), N - 1].forEach(i => {
+    s += `<text x="${x(i)}" y="${H - 5}" font-size="10" text-anchor="${i === 0 ? "start" : i === N - 1 ? "end" : "middle"}" fill="#5d6b70">${lab(i)}</text>`;
+  });
+  s += `<line id="xh" y1="${T}" y2="${y0 + PH}" stroke="#14706f" opacity="0" /><rect id="hit" x="${L}" y="${T}" width="${W - L - R}" height="${y0 + PH - T}" fill="transparent"/></svg>`;
+  $("chart").innerHTML = s;
+  const hit = $("hit"), xh = $("xh"), tt = $("tt");
+  hit.addEventListener("mousemove", e => {
+    const rect = $("svg").getBoundingClientRect(), sx = (e.clientX - rect.left) / rect.width * W;
+    const i = Math.max(0, Math.min(N - 1, Math.round((sx - L) / ((W - L - R) / N) - 0.5)));
+    const c = C[i]; xh.setAttribute("x1", x(i)); xh.setAttribute("x2", x(i)); xh.setAttribute("opacity", ".5");
+    tt.style.display = "block"; tt.style.left = e.clientX + 14 + "px"; tt.style.top = e.clientY + 10 + "px";
+    tt.innerHTML = `${lab(i)}<br>` + (real ? `O ${c.open} H ${c.high}<br>L ${c.low} C ${c.close}` : `Price index ${Number(c.close).toFixed(3)}`) + `<br>Chance of up: ${pct(P[i])}`;
+  });
+  hit.addEventListener("mouseleave", () => { xh.setAttribute("opacity", "0"); tt.style.display = "none"; });
+}
+function renderChart(sr, risk) {
+  lastSr = sr;
+  const p = sim.pos;
+  lastLines = (p && p.symbol === sr.symbol && p.interval === sr.interval) ? {entry: p.entry, stop: p.stop, target: p.target, pos: true} : risk;
+  drawChart();
+}
+
+/* ---------- paper-trading simulator ---------- */
+const FEE = 0.001;
+const simKey = () => "sim_" + $("source").value;
+function loadSim() {
+  try { const o = JSON.parse(localStorage.getItem(simKey())); if (o && typeof o.cash === "number") return o; } catch (e) {}
+  return {cash: 1000, start: 1000, pos: null, hist: []};
+}
+function saveSim() { try { localStorage.setItem(simKey(), JSON.stringify(sim)); } catch (e) {} }
+let sim = loadSim(), simMsgTimer = null;
+function say(text, kind) {
+  $("simmsg").innerHTML = `<div class="msg ${kind || ""}">${esc(text)}</div>`;
+  clearTimeout(simMsgTimer); simMsgTimer = setTimeout(() => $("simmsg").innerHTML = "", 9000);
+}
+function closePos(price, reason) {
+  const p = sim.pos; if (!p) return;
+  const gross = p.units * price, fee = gross * FEE, back = gross - fee, pnl = back - p.amount;
+  sim.cash += back;
+  sim.hist.unshift({symbol: p.symbol, interval: p.interval, entry: p.entry, exit: price, reason, pnl, pct: pnl / p.amount * 100});
+  sim.hist = sim.hist.slice(0, 50); sim.pos = null; saveSim();
+  say(`${reason}: sold ${p.symbol} at ${fmtP(price)} - ${pnl >= 0 ? "profit" : "loss"} ${money(pnl)} after fees.`, pnl >= 0 ? "good" : "bad");
+}
+const fmtP = v => Number(v).toLocaleString(undefined, {maximumFractionDigits: v < 10 ? 4 : 2});
+// bars = candles that happened AFTER the trade opened: {high, low, close}
+function exitCheck(bars) {
+  const p = sim.pos; if (!p) return;
+  for (const b of bars) {
+    if (b.low <= p.stop) { closePos(Math.min(p.stop, b.open ?? p.stop), "Stop-loss hit"); return; }
+    if (b.high >= p.target) { closePos(p.target, "Take-profit hit"); return; }
+  }
+}
+async function checkPosition() {
+  const p = sim.pos; if (!p) { renderSim(); return; }
+  try {
+    const rep = p.source === "replay";
+    const sr = await get(`/series?symbol=${p.symbol}&interval=${p.interval}&source=${p.source}&n=200` + (rep ? `&end=${ridx}` : ""));
+    let bars;
+    if (sr.candles && !rep) bars = sr.candles.filter(c => c.time * 1000 >= p.entryTs);
+    else bars = sr.price_index.map((v, k) => ({abs: sr.start + k, open: v, high: v, low: v, close: v})).filter(b => b.abs > p.entryIdx);
+    p.mark = (bars.length ? bars[bars.length - 1].close : null) ?? (sr.candles ? sr.candles[sr.candles.length - 1].close : sr.price_index[sr.price_index.length - 1]);
+    if (!rep && sr.candles) p.mark = sr.candles[sr.candles.length - 1].close;
+    exitCheck(bars);
+    if (sim.pos) saveSim();
+  } catch (e) {}
+  renderSim();
+}
+function ticketPrice() { return cur.price; }
+function renderSim() {
+  const p = sim.pos, mark = p ? (p.mark ?? p.entry) : null;
+  const posVal = p ? p.units * mark * (1 - FEE) : 0, equity = sim.cash + posVal, ret = (equity / sim.start - 1) * 100;
+  const wins = sim.hist.filter(h => h.pnl > 0).length;
+  $("acct").innerHTML = `
+    <div class="kpi"><span>Cash</span><b>${money(sim.cash)}</b></div>
+    <div class="kpi"><span>Total value</span><b>${money(equity)}</b></div>
+    <div class="kpi"><span>Return</span><b class="pnl ${ret >= 0 ? "up" : "dn"}">${ret >= 0 ? "+" : ""}${ret.toFixed(2)}%</b></div>
+    <div class="kpi"><span>Trades (won)</span><b>${sim.hist.length} (${wins})</b></div>`;
+  if (p) {
+    const pnl = posVal - p.amount;
+    $("posbox").innerHTML = `<div class="pos"><b>OPEN: ${esc(p.symbol)} ${esc(p.interval)}</b> <span class="hint">${p.source === "replay" ? "replay" : "live"}</span><br>
+      Bought at ${fmtP(p.entry)} &middot; now ${fmtP(mark)} &middot; ${Number(p.units).toPrecision(4)} units<br>
+      Stop <span style="color:var(--red)">${fmtP(p.stop)}</span> &middot; Target <span style="color:var(--green)">${fmtP(p.target)}</span><br>
+      Profit/loss now: <b class="pnl ${pnl >= 0 ? "up" : "dn"}">${pnl >= 0 ? "+" : ""}${money(pnl)}</b> (after the exit fee)</div>`;
+  } else $("posbox").innerHTML = `<div class="note" style="margin:0 0 10px">No open position. Set an amount, stop-loss and take-profit, then press BUY.</div>`;
+  $("hist").innerHTML = sim.hist.length ? `<table class="tbl"><tr><th>Coin</th><th>Entry</th><th>Exit</th><th>Result</th><th>P/L</th></tr>` +
+    sim.hist.slice(0, 8).map(h => `<tr><td>${esc(h.symbol)} ${esc(h.interval)}</td><td>${fmtP(h.entry)}</td><td>${fmtP(h.exit)}</td><td>${esc(h.reason)}</td><td class="pnl ${h.pnl >= 0 ? "up" : "dn"}">${h.pnl >= 0 ? "+" : ""}${money(h.pnl)} (${h.pct.toFixed(2)}%)</td></tr>`).join("") + `</table>` : `<div class="note" style="margin:0">No trades yet.</div>`;
+  $("btn-buy").disabled = !!p || !cur.price; $("btn-sell").disabled = !p;
+  updateTicketInfo();
+}
+function updateTicketInfo() {
+  const amt = parseFloat($("amt").value), sl = parseFloat($("slp").value), tp = parseFloat($("tpp").value), pr = ticketPrice();
+  if (!pr || !(amt > 0) || !(sl > 0) || !(tp > 0)) { $("ticketinfo").textContent = ""; return; }
+  const loss = amt * sl / 100 + amt * 2 * FEE, gain = amt * tp / 100 - amt * 2 * FEE;
+  $("ticketinfo").textContent = `At ${fmtP(pr)}: stop at ${fmtP(pr * (1 - sl / 100))}, target at ${fmtP(pr * (1 + tp / 100))}. If stopped out you lose about ${money(loss)}; if the target hits you gain about ${money(gain)} (both after fees).`;
+}
+function usePlan() {
+  if (!lastRisk) return;
+  $("amt").value = Math.min(lastRisk.position_value, sim.cash).toFixed(2);
+  $("slp").value = lastRisk.stop_distance_pct; $("tpp").value = lastRisk.target_distance_pct;
+  updateTicketInfo();
+}
+function buy() {
+  const amt = parseFloat($("amt").value), sl = parseFloat($("slp").value), tp = parseFloat($("tpp").value), pr = cur.price;
+  if (sim.pos) return say("You already have an open position. Sell it first.", "bad");
+  if (!pr) return say("No price yet - wait for the page to load.", "bad");
+  if (!(amt > 0) || amt > sim.cash + 1e-9) return say(`Amount must be between $1 and your cash (${money(sim.cash)}).`, "bad");
+  if (!(sl > 0) || !(tp > 0)) return say("Enter a stop-loss % and a take-profit % above zero.", "bad");
+  const units = amt * (1 - FEE) / pr;
+  sim.cash -= amt;
+  sim.pos = {symbol: cur.symbol, interval: cur.interval, source: cur.source, entry: pr, amount: amt, units, stop: pr * (1 - sl / 100), target: pr * (1 + tp / 100),
+             entryTs: Date.now(), entryIdx: cur.source === "replay" ? ridx : null, mark: pr};
+  saveSim(); say(`Bought ${cur.symbol} at ${fmtP(pr)} for ${money(amt)} (fee ${money(amt * FEE)}). Watching your stop and target.`, "good");
+  renderSim(); if (lastSr) renderChart(lastSr, lastRisk);
+}
+function sell() {
+  if (!sim.pos) return;
+  closePos(sim.pos.mark ?? sim.pos.entry, "Sold manually");
+  renderSim(); if (lastSr) renderChart(lastSr, lastRisk);
+}
+let resetArmed = false;
+function reset() {
+  if (!resetArmed) { resetArmed = true; $("btn-reset").textContent = "Click again to confirm"; setTimeout(() => { resetArmed = false; $("btn-reset").textContent = "Reset account"; }, 3000); return; }
+  resetArmed = false; $("btn-reset").textContent = "Reset account";
+  sim = {cash: 1000, start: 1000, pos: null, hist: []}; saveSim(); renderSim(); if (lastSr) renderChart(lastSr, lastRisk);
+}
+
+/* ---------- results ---------- */
+const RTABS = [["backtest", "Trading simulation"], ["backtest_vs_random", "vs random entries"], ["forward_auc", "Forward test: accuracy"], ["forward_backtest", "Forward test: trading"], ["model_comparison_test", "Model accuracy (test)"],
+               ["fee_sensitivity", "Effect of fees"], ["lstm", "LSTM check"], ["risk_of_ruin", "Risk of ruin"]];
+let currentTab = "backtest";
+function fmtCell(v) {
+  if (v == null) return "";
+  if (typeof v === "number") return Number.isInteger(v) ? v : (Math.abs(v) >= 100 ? v.toFixed(1) : Number(v.toPrecision(4)));
+  return esc(v);
+}
+async function loadResults(name) {
+  currentTab = name;
+  $("rtabs").innerHTML = RTABS.map(([k, l]) => `<button class="tab ${k === name ? "on" : ""}" data-k="${k}">${l}</button>`).join("");
+  document.querySelectorAll(".tab").forEach(b => b.onclick = () => loadResults(b.dataset.k));
+  try {
+    const rows = await get("/results/" + name);
+    if (!rows.length) { $("rbody").textContent = "No rows."; return; }
+    const cols = Object.keys(rows[0]);
+    $("rbody").innerHTML = `<table class="tbl"><tr>${cols.map(c => `<th>${esc(c.replace(/_/g, " "))}</th>`).join("")}</tr>` +
+      rows.slice(0, 40).map(r => `<tr>${cols.map(c => `<td>${fmtCell(r[c])}</td>`).join("")}</tr>`).join("") + "</table>";
+  } catch (e) { $("rbody").innerHTML = `<div class="warn">Could not load ${esc(name)}: ${esc(e.message)}</div>`; }
+}
+
+/* ---------- main refresh ---------- */
+async function loadRisk() {
+  const bal = parseFloat($("balance").value) || 1000, rp = (parseFloat($("riskpct").value) || 1) / 100;
+  lastRisk = await get(`/risk?${q("risk")}&balance=${bal}&risk_pct=${rp}`);
+  renderRisk(lastRisk);
+}
+async function refresh() {
+  if (busy) return; busy = true;
+  document.querySelectorAll(".err").forEach(e => e.remove());
+  const first = !cur.price;
+  try {
+    const [sig, sr] = await Promise.all([get(`/signal?${q("signal")}`), get(`/series?${q("series")}&n=200`)]);
+    cur = {symbol: sig.symbol, interval: sig.interval, source: sig.source, price: sig.price};
+    $("ridx").textContent = "candle #" + ridx;
+    renderVerdict(sig); renderDrivers(sig);
+    await loadRisk().catch(e => { $("risk").innerHTML = `<div class="warn">${esc(e.message)}</div>`; lastRisk = null; });
+    renderChart(sr, lastRisk);
+    if (first || !$("amt").value) usePlan();
+    await checkPosition();
+    if (lastSr) renderChart(lastSr, lastRisk);
+  } catch (e) {
+    $("main").insertAdjacentHTML("afterbegin", `<div class="err"><b>Could not load data.</b> ${esc(e.message)}<br>Is the API running (<code>python -m uvicorn api:app --reload</code>) and PostgreSQL started?</div>`);
+  }
+  loadStatus(); busy = false;
+}
+function schedule() { clearInterval(timer); const s = +$("refresh").value; if (s) timer = setInterval(refresh, s * 1000); }
+
+["symbol", "interval"].forEach(id => $(id).addEventListener("change", () => { cur = {}; $("amt").value = ""; refresh(); }));
+let autoT = null;
+function setAuto(on) { clearInterval(autoT); autoT = null; $("r-auto").classList.toggle("on", on); $("r-auto").textContent = on ? "Pause" : "Auto-play"; if (on) autoT = setInterval(() => { ridx++; refresh(); }, 1500); }
+$("source").addEventListener("change", () => {
+  setAuto(false); const rep = $("source").value === "replay";
+  $("replayctl").style.display = rep ? "inline-flex" : "none";
+  sim = loadSim(); cur = {}; $("amt").value = ""; renderSim(); refresh();
+});
+$("r-next").onclick = () => { ridx++; refresh(); };
+$("r-10").onclick = () => { ridx += 10; refresh(); };
+$("r-auto").onclick = () => setAuto(!autoT);
+$("b-candle").onclick = () => { chartStyle = "candle"; $("b-candle").classList.add("on"); $("b-line").classList.remove("on"); drawChart(); };
+$("b-line").onclick = () => { chartStyle = "line"; $("b-line").classList.add("on"); $("b-candle").classList.remove("on"); drawChart(); };
+$("win").addEventListener("change", drawChart);
+$("btn-buy").onclick = buy; $("btn-sell").onclick = sell; $("btn-plan").onclick = usePlan; $("btn-reset").onclick = reset;
+["amt", "slp", "tpp"].forEach(id => $(id).addEventListener("input", updateTicketInfo));
+setInterval(() => { if (sim.pos && sim.pos.source === "db" && $("source").value === "db") checkPosition().then(() => lastSr && renderChart(lastSr, lastRisk)); }, 10000);
+$("refresh").addEventListener("change", schedule);
+["balance", "riskpct"].forEach(id => $(id).addEventListener("change", () => refresh()));
+
+document.addEventListener("mouseover", e => { const t = e.target.closest && e.target.closest("[data-tip]"); if (t) { const b = $("tt"); b.textContent = t.dataset.tip; b.style.display = "block"; const r = t.getBoundingClientRect(); b.style.left = Math.min(r.left, innerWidth - 280) + "px"; b.style.top = r.bottom + 6 + "px"; } });
+document.addEventListener("mouseout", e => { if (e.target.closest && e.target.closest("[data-tip]")) $("tt").style.display = "none"; });
+
+(async function init() {
+  try {
+    GLOSS = await get("/glossary");
+    $("gloss").innerHTML = Object.entries(GLOSS).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v.replace(/^[^:]+:\s*/, ""))}</dd>`).join("");
+  } catch (e) {}
+  renderSim(); loadResults("backtest"); refresh(); schedule();
+})();
+</script>
+</body>
+</html>

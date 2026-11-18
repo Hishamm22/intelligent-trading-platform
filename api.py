@@ -7,6 +7,8 @@ source=replay  -> the held-out TEST period, stepped through candle by candle (ou
 """
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from pathlib import Path
 
 import trade_logic as tl
 
@@ -75,3 +77,9 @@ def results(name: str):
 @app.get("/glossary")
 def glossary():
     return tl.GLOSSARY
+
+
+@app.get("/", include_in_schema=False)
+def dashboard():
+    """The live dashboard page (dashboard.html sits next to this file)."""
+    return FileResponse(Path(__file__).with_name("dashboard.html"))

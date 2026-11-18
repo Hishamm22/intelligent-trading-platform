@@ -23,4 +23,9 @@ for symbol in SYMBOLS:
         rows.append({"symbol": symbol, "interval": interval,
                      "spearman": round(rho, 3), "auc_high_vol": round(auc, 4), "n": len(val)})
 
-print(pd.DataFrame(rows).to_string(index=False))
+out = pd.DataFrame(rows)
+print(out.to_string(index=False))
+import os
+os.makedirs("results", exist_ok=True)
+out.to_csv("results/volatility_val.csv", index=False)
+print("Saved results/volatility_val.csv")
