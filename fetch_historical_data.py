@@ -8,7 +8,7 @@ BASE_URL = "https://api.binance.com/api/v3/klines"
 
 SYMBOLS = ["BTCUSDT", "XRPUSDT", "SOLUSDT"]
 INTERVALS = ["1m", "3m", "5m"]
-DAYS_BACK = 90
+DAYS_BACK = 50
 
 def fetch_klines(symbol, interval, start_time, end_time, limit=1000):
     all_candles = []
